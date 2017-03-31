@@ -15,7 +15,7 @@ public extension Response {
   /// If the conversion fails, the signal errors.
   public func mapObject<T: BaseMappable>(_ type: T.Type) throws -> T {
     guard let object = Mapper<T>().map(JSONObject: try mapJSON()) else {
-      throw Error.jsonMapping(self)
+      throw MoyaError.jsonMapping(self)
     }
    return object
   }
@@ -27,7 +27,7 @@ public extension Response {
 
     guard let json = try mapJSON() as? [String: Any],
           let objects = Mapper<T>().mapArray(JSONArray: json["results"] as! [[String : Any]]) else {
-        throw Error.jsonMapping(self)
+        throw MoyaError.jsonMapping(self)
     }
     
     return objects
@@ -52,7 +52,7 @@ public extension Response {
   /// If the conversion fails, the signal errors.
   public func mapArray<T: ImmutableMappable>(_ type: T.Type) throws -> [T] {
     guard let array = try mapJSON() as? [[String : Any]] else {
-      throw Error.jsonMapping(self)
+      throw MoyaError.jsonMapping(self)
     }
     return try Mapper<T>().mapArray(JSONArray: array)
   }

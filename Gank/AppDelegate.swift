@@ -8,7 +8,6 @@
 
 import UIKit
 import Kingfisher
-import SideMenu
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -62,11 +61,6 @@ extension AppDelegate {
             UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName: Config.UI.titleColor]
         }
         
-        do /** SideMenu Config */ {
-            SideMenuManager.menuAnimationBackgroundColor = Config.UI.themeColor
-            SideMenuManager.menuWidth = 100.0
-            SideMenuManager.menuFadeStatusBar = false
-        }
     }
 }
 

@@ -8,7 +8,6 @@
 
 import UIKit
 import SwiftWebVC
-import HMSegmentedControl
 import EZSwiftExtensions
 import Then
 import SnapKit
@@ -17,7 +16,6 @@ import RxSwift
 import RxCocoa
 import Kingfisher
 import NoticeBar
-import SideMenu
 import PullToRefresh
 
 final class HomeViewController: UIViewController {
@@ -100,11 +98,7 @@ extension HomeViewController {
                 })
                 .observeOn(MainScheduler.asyncInstance)
                 .do(onNext: { (idx) in
-                    SideMenuManager.menuLeftNavigationController?.dismiss(animated: true, completion: {
-                        DispatchQueue.main.async(execute: { 
-                            self.tableView.refreshControl?.beginRefreshing()
-                        })
-                    })
+
                 }, onError: nil, onCompleted: nil, onSubscribe:nil,onDispose: nil)
                 .bindTo(outputStuff.refreshCommand)
                 .addDisposableTo(rx_disposeBag)

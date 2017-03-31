@@ -6,4 +6,3 @@
 //  Copyright © 2016年 Maru. All rights reserved.
 //
 
-#import <HMSegmentedControl/HMSegmentedControl.h>
