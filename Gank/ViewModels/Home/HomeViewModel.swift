@@ -14,14 +14,14 @@ import Moya
 
 struct HomeSection {
     
-    var items: [Item]
+    var items: [Brick]
 }
 
 extension HomeSection: SectionModelType {
     
     typealias Item = Brick
     
-    init(original: HomeSection, items: [HomeSection.Item]) {
+    init(original: HomeSection, items: [Brick]) {
         self = original
         self.items = items
     }
@@ -86,6 +86,12 @@ final class HomeViewModel: NSObject,ViewModelType {
                 }
             })
             .addDisposableTo(rx_disposeBag)
+        
+        input.category
+            .asObservable()
+            .bindTo(output.refreshCommand)
+            .addDisposableTo(rx_disposeBag)
+
         
         return output
     }

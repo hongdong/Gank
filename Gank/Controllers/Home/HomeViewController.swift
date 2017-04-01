@@ -76,32 +76,12 @@ extension HomeViewController {
             // Output
             let outputStuff = homeVM.transform(input: inputStuff)
         
-            // DataBinding
+            // 刷新绑定
             tableView.refreshControl?.rx.controlEvent(.allEvents)
                 .flatMap({ inputStuff.category.asObservable() })
                 .bindTo(outputStuff.refreshCommand)
                 .addDisposableTo(rx_disposeBag)
-            
-            NotificationCenter.default.rx.notification(Notification.Name.category)
-                .map({ (notification) -> Int in
-                    let indexPath = (notification.object as? IndexPath) ?? IndexPath(item: 0, section: 0)
-                    return indexPath.row
-                })
-                .bindTo(inputStuff.category)
-                .addDisposableTo(rx_disposeBag)
-            
-
-            NotificationCenter.default.rx.notification(Notification.Name.category)
-                .map({ (notification) -> Int in
-                    let indexPath = (notification.object as? IndexPath) ?? IndexPath(item: 0, section: 0)
-                    return indexPath.row
-                })
-                .observeOn(MainScheduler.asyncInstance)
-                .do(onNext: { (idx) in
-
-                }, onError: nil, onCompleted: nil, onSubscribe:nil,onDispose: nil)
-                .bindTo(outputStuff.refreshCommand)
-                .addDisposableTo(rx_disposeBag)
+        
                         
             outputStuff.section
                 .drive(tableView.rx.items(dataSource: outputStuff.dataSource))
@@ -136,9 +116,10 @@ extension HomeViewController {
                 cell.gankTime.text = item.publishedAt.toString(format: "YYYY/MM/DD")
                 return cell
             }
+            
+            inputStuff.category.value = 0
+            
         }
-        
-        NotificationCenter.default.post(name: Notification.Name.category, object: IndexPath(row: 0, section: 0))
         
     }
     
