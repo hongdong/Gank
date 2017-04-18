@@ -13,57 +13,48 @@ import RxDataSources
 import Moya
 import Then
 
-struct HomeSection {
-    
-    var items: [Brick]
-}
-
-extension HomeSection: SectionModelType {
+struct HomeSectionModel: SectionModelType {
     
     typealias Item = Brick
     
-    init(original: HomeSection, items: [Brick]) {
+    var items: [Item]
+    
+    init(items:[Item]) {
+        self.items = items
+    }
+    
+    init(original: HomeSectionModel, items: [Item]) {
         self = original
         self.items = items
     }
+    
 }
 
 final class HomeViewModel: NSObject,ViewModelType {
     
-    override init() {
-        
-        super.init()
-        
-        _bricks.asObservable().map { (bricks) -> [URL] in
-            return bricks.map({ (brick) -> URL in
-                return URL(string: brick.url)!
-            })
-            }.subscribe(onNext: { [weak self] (urls) in
-                self?.itemURLs.value = urls
-                }, onError: nil, onCompleted: nil, onDisposed: nil)
-            .addDisposableTo(rx_disposeBag)
-    }
-    
+    //protocol泛型
     typealias Input  = HomeInput
     typealias Output = HomeOutput
     
-    // Inputs
+    // Input结构体
     struct HomeInput {
-        let category = Variable<Int>(0)
+
     }
     
-    // Output
+    // Output结构体
     struct HomeOutput {
         
-        let section: Driver<[HomeSection]>
-        let refreshCommand = PublishSubject<Int>()
+        let section: Driver<[HomeSectionModel]>
+        let refreshCommand = PublishSubject<Void>()
         let refreshTrigger = PublishSubject<Void>()
-        let dataSource = RxTableViewSectionedReloadDataSource<HomeSection>()
+        let dataSource = RxTableViewSectionedReloadDataSource<HomeSectionModel>()
         
-        init(homeSection: Driver<[HomeSection]>) {
+        init(homeSection: Driver<[HomeSectionModel]>) {
             section = homeSection
         }
     }
+    
+    //=====属性======//
     
     let homeInput = HomeInput()
     
@@ -73,23 +64,24 @@ final class HomeViewModel: NSObject,ViewModelType {
         return tempWebView!
     }()
 
-    // Public  Stuff
-    var itemURLs = Variable<[URL]>([])
     // Private Stuff
     fileprivate let _bricks = Variable<[Brick]>([])
+    
+    //===========//
+
     
     /// Tansform Action for DataBinding
     func transform(input: HomeViewModel.Input) -> HomeViewModel.Output {
         
-        let section = _bricks.asObservable().map({ (bricks:[Brick]) -> [HomeSection] in
-            return [HomeSection(items: bricks)]
+        let section = _bricks.asObservable().map({ (bricks:[Brick]) -> [HomeSectionModel] in
+            return [HomeSectionModel(items: bricks)]
         })
         .asDriver(onErrorJustReturn: [])
         
         let output = Output(homeSection: section)
         
         output.refreshCommand
-            .flatMapLatest { gankApi.request(GankAPI.data(type: GankAPI.GankCategory.mapCategory(with: $0), size: 20, index: 0)) }
+            .flatMapLatest { gankApi.request(GankAPI.data(type: GankAPI.GankCategory.mapCategory(with: 0), size: 20, index: 0)) }
             .subscribe({ [weak self] (event) in
                 output.refreshTrigger.onNext()
                 switch event {
@@ -109,11 +101,6 @@ final class HomeViewModel: NSObject,ViewModelType {
                 }
             })
             .addDisposableTo(rx_disposeBag)
-        
-        input.category
-        .asObservable()
-        .bind(to: output.refreshCommand)
-        .addDisposableTo(rx_disposeBag)
         
         return output
     }

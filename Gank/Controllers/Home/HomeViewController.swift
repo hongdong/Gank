@@ -55,10 +55,8 @@ extension HomeViewController {
             
             // 刷新绑定
             tableView.refreshControl?.rx.controlEvent(.allEvents)
-                .flatMap({ self.homeVM.homeInput.category.asObservable() })
                 .bind(to: homeVM.homeOutput.refreshCommand)
                 .addDisposableTo(rx_disposeBag)
-        
                         
             homeVM.homeOutput.section
                 .drive(tableView.rx.items(dataSource: homeVM.homeOutput.dataSource))
@@ -94,7 +92,10 @@ extension HomeViewController {
                 return cell
             }
             
-            homeVM.homeInput.category.value = 0
+            
+            //第一次手动发起请求
+            homeVM.homeOutput.refreshCommand.onNext()
+
             
         }
         
@@ -123,7 +124,5 @@ extension HomeViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let webActivity = BrowserWebViewController(url: homeVM.itemURLs.value[indexPath.row])
-        navigationController?.pushViewController(webActivity, animated: true)
     }
 }
