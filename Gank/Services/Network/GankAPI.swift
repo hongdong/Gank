@@ -30,6 +30,7 @@ enum GankAPI {
 
 extension GankAPI: TargetType {
     
+    
     var baseURL: URL { return URL(string: "http://gank.io")! }
     
     var path: String {

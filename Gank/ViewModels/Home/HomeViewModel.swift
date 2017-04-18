@@ -11,6 +11,7 @@ import RxSwift
 import RxCocoa
 import RxDataSources
 import Moya
+import Then
 
 struct HomeSection {
     
@@ -29,9 +30,23 @@ extension HomeSection: SectionModelType {
 
 final class HomeViewModel: NSObject,ViewModelType {
     
+    override init() {
+        
+        super.init()
+        
+        _bricks.asObservable().map { (bricks) -> [URL] in
+            return bricks.map({ (brick) -> URL in
+                return URL(string: brick.url)!
+            })
+            }.subscribe(onNext: { [weak self] (urls) in
+                self?.itemURLs.value = urls
+                }, onError: nil, onCompleted: nil, onDisposed: nil)
+            .addDisposableTo(rx_disposeBag)
+    }
+    
     typealias Input  = HomeInput
     typealias Output = HomeOutput
-
+    
     // Inputs
     struct HomeInput {
         let category = Variable<Int>(0)
@@ -50,6 +65,14 @@ final class HomeViewModel: NSObject,ViewModelType {
         }
     }
     
+    let homeInput = HomeInput()
+    
+    lazy var homeOutput:HomeOutput = {
+        [weak self] () -> HomeOutput in
+        let tempWebView = self?.transform(input: (self?.homeInput)!)
+        return tempWebView!
+    }()
+
     // Public  Stuff
     var itemURLs = Variable<[URL]>([])
     // Private Stuff
@@ -58,7 +81,7 @@ final class HomeViewModel: NSObject,ViewModelType {
     /// Tansform Action for DataBinding
     func transform(input: HomeViewModel.Input) -> HomeViewModel.Output {
         
-        let section = _bricks.asObservable().map({ (bricks) -> [HomeSection] in
+        let section = _bricks.asObservable().map({ (bricks:[Brick]) -> [HomeSection] in
             return [HomeSection(items: bricks)]
         })
         .asDriver(onErrorJustReturn: [])
@@ -66,7 +89,7 @@ final class HomeViewModel: NSObject,ViewModelType {
         let output = Output(homeSection: section)
         
         output.refreshCommand
-            .flatMapLatest { gankApi.request(.data(type: GankAPI.GankCategory.mapCategory(with: $0), size: 20, index: 0)) }
+            .flatMapLatest { gankApi.request(GankAPI.data(type: GankAPI.GankCategory.mapCategory(with: $0), size: 20, index: 0)) }
             .subscribe({ [weak self] (event) in
                 output.refreshTrigger.onNext()
                 switch event {
@@ -88,26 +111,14 @@ final class HomeViewModel: NSObject,ViewModelType {
             .addDisposableTo(rx_disposeBag)
         
         input.category
-            .asObservable()
-            .bindTo(output.refreshCommand)
-            .addDisposableTo(rx_disposeBag)
-
+        .asObservable()
+        .bind(to: output.refreshCommand)
+        .addDisposableTo(rx_disposeBag)
         
         return output
     }
     
-    override init() {
-        super.init()
-        
-        _bricks.asObservable().map { (bricks) -> [URL] in
-            return bricks.map({ (brick) -> URL in
-                return URL(string: brick.url)!
-            })
-        }.subscribe(onNext: { [weak self] (urls) in
-            self?.itemURLs.value = urls
-        }, onError: nil, onCompleted: nil, onDisposed: nil)
-        .addDisposableTo(rx_disposeBag)
-    }
+
     
 }
 

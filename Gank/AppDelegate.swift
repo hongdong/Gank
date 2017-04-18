@@ -8,15 +8,16 @@
 
 import UIKit
 import Kingfisher
+import RxSwift
+import Foundation
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
-
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
         setupConfig()
         return true
     }
@@ -49,7 +50,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 extension AppDelegate {
     
     fileprivate func setupConfig() {
-        
+                
         do /** KingFisher Config */ {
             ImageCache.`default`.maxMemoryCost = UInt(30 * 1024 * 1024)
         }

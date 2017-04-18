@@ -16,34 +16,23 @@ import RxSwift
 import RxCocoa
 import Kingfisher
 import NoticeBar
-import PullToRefresh
 
 final class HomeViewController: UIViewController {
     
     let tableView = UITableView().then {
         $0.register(cellType: HomeTableViewCell.self)
+        $0.estimatedRowHeight = 100
+        $0.separatorStyle = .none
+        $0.refreshControl = UIRefreshControl()
     }
     
-    let refreshControl = PullToRefresh()
-    
     let homeVM = HomeViewModel()
-        
-    // MARK: - Life Cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setup()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-    }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
 }
 
 extension HomeViewController {
@@ -55,13 +44,7 @@ extension HomeViewController {
         do /** UI Config */ {
             
             title = "Gank"
-            
-            tableView.estimatedRowHeight = 100
-            tableView.separatorStyle = .none
-            tableView.refreshControl = UIRefreshControl()
-            
             view.addSubview(tableView)
-            
             tableView.snp.makeConstraints { (make) in
                 make.edges.equalTo(view)
             }
@@ -70,27 +53,21 @@ extension HomeViewController {
         
         do /** Rx Config */ {
             
-            // Input
-            let inputStuff  = HomeViewModel.HomeInput()
-            
-            // Output
-            let outputStuff = homeVM.transform(input: inputStuff)
-        
             // 刷新绑定
             tableView.refreshControl?.rx.controlEvent(.allEvents)
-                .flatMap({ inputStuff.category.asObservable() })
-                .bindTo(outputStuff.refreshCommand)
+                .flatMap({ self.homeVM.homeInput.category.asObservable() })
+                .bind(to: homeVM.homeOutput.refreshCommand)
                 .addDisposableTo(rx_disposeBag)
         
                         
-            outputStuff.section
-                .drive(tableView.rx.items(dataSource: outputStuff.dataSource))
+            homeVM.homeOutput.section
+                .drive(tableView.rx.items(dataSource: homeVM.homeOutput.dataSource))
                 .addDisposableTo(rx_disposeBag)
             
             tableView.rx.setDelegate(self)
                 .addDisposableTo(rx_disposeBag)
             
-            outputStuff.refreshTrigger
+            homeVM.homeOutput.refreshTrigger
                 .observeOn(MainScheduler.instance)
                 .subscribe { [unowned self] (event) in
                     self.tableView.refreshControl?.endRefreshing()
@@ -109,7 +86,7 @@ extension HomeViewController {
             
             // Configure
             
-            outputStuff.dataSource.configureCell = { dataSource, tableView, indexPath, item in
+            homeVM.homeOutput.dataSource.configureCell = { dataSource, tableView, indexPath, item in
                 let cell = tableView.dequeueReusableCell(for: indexPath, cellType: HomeTableViewCell.self)
                 cell.gankTitle?.text = item.desc
                 cell.gankAuthor.text = item.who
@@ -117,7 +94,7 @@ extension HomeViewController {
                 return cell
             }
             
-            inputStuff.category.value = 0
+            homeVM.homeInput.category.value = 0
             
         }
         
