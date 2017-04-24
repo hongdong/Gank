@@ -81,7 +81,7 @@ final class HomeViewModel: NSObject,ViewModelType {
         let output = Output(homeSection: section)
         
         output.refreshCommand
-            .flatMapLatest { gankApi.request(GankAPI.data(type: GankAPI.GankCategory.mapCategory(with: 0), size: 20, index: 0)) }
+            .flatMapLatest { gankApi.request(.data(type: "0", size: 20, index: 0)) }
             .subscribe({ [weak self] (event) in
                 output.refreshTrigger.onNext()
                 switch event {

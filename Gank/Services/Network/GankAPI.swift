@@ -11,21 +11,8 @@ import Moya
 
 enum GankAPI {
     
-    enum GankCategory: String {
-        
-        case All      = "all"
-        
-        static func mapCategory(with hashValue: Int) -> GankCategory {
-            switch hashValue {
-            case 0:
-                return .All
-            default:
-                return .All
-            }
-        }
-    }
+    case data(type: String,size: Int64,index: Int64)
     
-    case data(type: GankCategory,size: Int64,index: Int64)
 }
 
 extension GankAPI: TargetType {
@@ -36,7 +23,8 @@ extension GankAPI: TargetType {
     var path: String {
         switch self {
         case .data(let type,let size,let index):
-            return "/api/data/\(type.rawValue)/\(size)/\(index)"
+            let path = "/api/data/\(type)/\(size)/\(index)"
+            return path
         }
     }
     
